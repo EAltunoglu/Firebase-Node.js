@@ -352,3 +352,21 @@ exports.getFollowing = (req, res) => {
     return res.status(500).json({error: err.code});
   })
 }
+
+exports.getSimilarUsernames = (req, res) => {
+  db.collection('users')
+  .where('username', '>=', req.body.username)
+  .get()
+  .then(data => {
+    let users = [];
+    data.forEach(doc => {
+      users.push({
+        username: doc.data().username
+      })
+    });
+    return res.json(users);
+  }).catch(err =>{
+    console.log(err);
+    return res.status(500).json({error: err.code});
+  })
+}

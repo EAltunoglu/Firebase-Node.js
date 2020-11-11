@@ -10,7 +10,10 @@ const { db } = require('./util/admin');
 const { getAllFavs, postOneFav, getFav, commentOnFav,
   likeFav, unlikeFav, deleteFav, getUserFavs } = require('./handlers/favs');
 const { signup, login, uploadImage, addUserDetails,
-  getAuthenticatedUser, getUserDetails, markNotificationsRead, followUser, unfollowUser, sendmessage, getmessages, getFollowing } = require('./handlers/users')
+  getAuthenticatedUser, getUserDetails,
+  markNotificationsRead, followUser, unfollowUser,
+  sendmessage, getmessages, getFollowing,
+  getSimilarUsernames } = require('./handlers/users')
 
 app.use(cors({origin: true}));
 
@@ -42,6 +45,7 @@ app.delete('/disfollow/:username', FavAuth, unfollowUser);
 app.post('/sendmessage/:username', FavAuth, sendmessage);
 app.get('/getmessage/:username', FavAuth, getmessages);
 app.get('/follow', FavAuth, getFollowing);
+app.get('/search/user', getSimilarUsernames);
 
 app.use(cors({origin: true}));
 
