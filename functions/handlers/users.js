@@ -4,6 +4,7 @@ const firebase = require('firebase');
 firebase.initializeApp(config);
 const {validateSignupData, validateLoginData, reduceUserDetails} = require('../util/validators');
 const {uuid} = require("uuidv4");
+const { get } = require('http');
 //const {getUserFavs} = require('');
 
 exports.signup =  (req, res) => {
@@ -137,7 +138,7 @@ exports.getAuthenticatedUser = (req, res) => {
         userData.likes.push(doc.data());
       });
       return db.collection('notifications').where('recipient', '==', req.user.username)
-        .orderBy('createdAt', 'desc').limit(10).get();
+        .orderBy('createdAt', 'desc').get();
     })
     .then(data => {
       userData.notifications = [];
@@ -152,6 +153,15 @@ exports.getAuthenticatedUser = (req, res) => {
           notificationId: doc.id
         })
       });
+      return db.collection('follows').where('sender', '==', req.user.username).get()
+    })
+    .then(data => {
+      userData.following = [];
+      data.forEach(doc => {
+        userData.following.push({
+          username: doc.data().reciever
+        })
+      })
       return res.json(userData);
     })
     .catch(err => {
@@ -340,7 +350,6 @@ exports.getFollowing = (req, res) => {
     let following=[];
     data.forEach(doc => {
       following.push({
-        followId: doc.id,
         following: doc.data().reciever
       });
     })
