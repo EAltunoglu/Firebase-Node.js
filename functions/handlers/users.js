@@ -96,7 +96,7 @@ exports.getUserDetails = (req, res) => {
     if(doc.exists){
       userData.user = doc.data();
       return db.collection('favs').where('username', '==', req.params.username)
-        .orderBy('postedOn', 'desc')
+        .orderBy('createdAt', 'desc')
         .get();
     } else {
       return res.status(404).json({error: 'User not found'});
@@ -106,7 +106,7 @@ exports.getUserDetails = (req, res) => {
     data.forEach((doc) => {
       userData.favs.push({
         body: doc.data().body,
-        postedOn: doc.data().postedOn,
+        createdAt: doc.data().createdAt,
         username: doc.data().username,
         userImage: doc.data().userImage,
         commentCount: doc.data().commentCount,
@@ -137,7 +137,7 @@ exports.getAuthenticatedUser = (req, res) => {
         userData.likes.push(doc.data());
       });
       return db.collection('notifications').where('recipient', '==', req.user.username)
-        .orderBy('postedOn', 'desc').limit(10).get();
+        .orderBy('createdAt', 'desc').limit(10).get();
     })
     .then(data => {
       userData.notifications = [];
@@ -145,7 +145,7 @@ exports.getAuthenticatedUser = (req, res) => {
         userData.notifications.push({
           recipient: doc.data().recipient,
           sender: doc.data().sender,
-          postedOn: doc.data().postedOn,
+          createdAt: doc.data().createdAt,
           favId: doc.data().favId,
           type: doc.data().type,
           read: doc.data().read,
@@ -355,6 +355,7 @@ exports.getFollowing = (req, res) => {
 exports.getSimilarUsernames = (req, res) => {
   db.collection('users')
   .where('username', '>=', req.body.username)
+  .limit(5)
   .get()
   .then(data => {
     let users = [];

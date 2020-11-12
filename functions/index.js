@@ -58,7 +58,7 @@ exports.createNotificationOnLike = functions.firestore.document('likes/{id}')
       .then(doc => {
         if(doc.exists && doc.data().username !== snapshot.data().username){
           return db.doc(`/notifications/${snapshot.id}`).set({
-            postedOn: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             recipient: doc.data().username,
             sender: snapshot.data().username,
             type: 'like',
@@ -66,14 +66,11 @@ exports.createNotificationOnLike = functions.firestore.document('likes/{id}')
             favId: doc.id
           });
         }
-        console.log(snapshot.data());
-        console.log("AAAA");
-        console.log(snapshot.data().favId);
-        return status(500).json({error: "Couldnt create notification"}); // What to return
+        return null;
       })
       .catch(err => {
-        console.log(err);
-        return status(400).json({error: err.code});
+        console.error(err);
+        return null;
       })
   })
 
@@ -84,7 +81,7 @@ exports.createNotificationOnComment = functions.firestore.document('comments/{id
     .then(doc => {
       if(doc.exists){ // if same user
         return db.doc(`/notifications/${snapshot.id}`).set({
-          postedOn: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
           recipient: doc.data().username,
           sender: snapshot.data().username,
           type: 'comment',
@@ -92,11 +89,11 @@ exports.createNotificationOnComment = functions.firestore.document('comments/{id
           favId: doc.id
         });
       }
-      return res.status(200); // Database trigger ??
+      return null;
     })
     .catch(err => {
-      console.log(err);
-      return res.status(400).json({error: err.code});
+      console.error(err);
+      return null;
     })
 })
 
@@ -107,7 +104,7 @@ exports.deleteNotificationOnUnLike = functions.firestore.document('likes/{id}')
     .delete()
     .catch(err => {
       console.error(err);
-      return;
+      return null;
     })
 })
 
@@ -132,7 +129,7 @@ exports.onUserImageChange = functions.firestore.document('/users/{userId}')
         })
         return batch.commit();
       })
-    } else return true;
+    } else return null;
   })
 
 exports.onFavDelete = functions.firestore.document('/favs/{favId}')
@@ -175,11 +172,10 @@ exports.createNotificationOnMessage = functions.firestore.document('/messages/{m
           messageId: doc.id
         });
       }
-      console.log(snapshot.data());
-      return status(500).json({error: "Couldnt create notification"}); // What to return
+      return null; // What to return
     })
     .catch(err => {
-      console.log(err);
-      return status(400).json({error: err.code});
+      console.error(err);
+      return null;
     })
 })

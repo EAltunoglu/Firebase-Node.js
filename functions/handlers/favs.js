@@ -2,7 +2,7 @@ const { db } =require('../util/admin');
 
 exports.getAllFavs = (req, res) => {
   db.collection('favs')
-  .orderBy('postedOn', 'desc')
+  .orderBy('createdAt', 'desc')
   .get()
   .then(data => {
     let favs = [];
@@ -11,7 +11,7 @@ exports.getAllFavs = (req, res) => {
         favId: doc.id,
         body: doc.data().body,
         username: doc.data().username,
-        postedOn: doc.data().postedOn,
+        createdAt: doc.data().createdAt,
         commentCount: doc.data().commentCount,
         likeCount: doc.data().likeCount,
         userImage: doc.data().userImage
@@ -36,7 +36,7 @@ exports.postOneFav = (req, res) => {
     //favName: req.body.favName, Eklenecek fıeldlar mesela
     username: req.user.username,
     userImage: req.user.imageUrl,
-    postedOn: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     likeCount: 0,
     commentCount: 0
   };
@@ -64,7 +64,7 @@ exports.getFav = (req, res) => {
       favData = doc.data();
       favData.favId = doc.id;
       return db.collection('comments')
-      .orderBy('postedOn', 'desc') // Complex query
+      .orderBy('createdAt', 'desc') // Complex query
       .where('favId', '==', req.params.favId).get();
       //return res.status(400).json({error: 'Get fav Error'});
     }).then( data => {
@@ -87,7 +87,7 @@ exports.commentOnFav = (req, res) => {
 
   const newComment = {
     body: req.body.body,
-    postedOn: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     favId: req.params.favId,
     username: req.user.username,
     userImage: req.user.imageUrl
@@ -204,7 +204,7 @@ exports.unlikeFav = (req, res) => {
 exports.getUserFavs = (req, res) => {
   db.collection('favs')
   .where('username', '==', req.params.username)
-  .orderBy('postedOn', 'desc')
+  .orderBy('createdAt', 'desc')
   .get()
   .then(data => {
     let favs = [];
@@ -213,7 +213,7 @@ exports.getUserFavs = (req, res) => {
         favId: doc.id,
         body: doc.data().body,
         username: doc.data().username,
-        postedOn: doc.data().postedOn,
+        createdAt: doc.data().createdAt,
         commentCount: doc.data().commentCount,
         likeCount: doc.data().likeCount,
         userImage: doc.data().userImage
