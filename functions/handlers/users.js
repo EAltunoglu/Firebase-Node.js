@@ -110,7 +110,7 @@ exports.getUserDetails = (req, res) => {
         username: doc.data().username,
         userImage: doc.data().userImage,
         commentCount: doc.data().commentCount,
-        FavId: doc.data().id
+        favId: doc.data().id
       })
     });
     return res.json(userData);
@@ -146,7 +146,7 @@ exports.getAuthenticatedUser = (req, res) => {
           recipient: doc.data().recipient,
           sender: doc.data().sender,
           postedOn: doc.data().postedOn,
-          FavId: doc.data().FavId,
+          favId: doc.data().favId,
           type: doc.data().type,
           read: doc.data().read,
           notificationId: doc.id
@@ -173,7 +173,6 @@ exports.addUserDetails = (req, res) => {
     });
 };
 
-// U+FUCK
 exports.uploadImage = (req, res) => {
   const BusBoy = require('busboy');
   const path = require('path');

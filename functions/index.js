@@ -45,7 +45,7 @@ app.delete('/disfollow/:username', FavAuth, unfollowUser);
 app.post('/sendmessage/:username', FavAuth, sendmessage);
 app.get('/getmessage/:username', FavAuth, getmessages);
 app.get('/follow', FavAuth, getFollowing);
-app.get('/search/user', getSimilarUsernames);
+app.post('/search/user', getSimilarUsernames);
 
 app.use(cors({origin: true}));
 
@@ -66,11 +66,14 @@ exports.createNotificationOnLike = functions.firestore.document('likes/{id}')
             favId: doc.id
           });
         }
-        return res.status(200); // What to return
+        console.log(snapshot.data());
+        console.log("AAAA");
+        console.log(snapshot.data().favId);
+        return status(500).json({error: "Couldnt create notification"}); // What to return
       })
       .catch(err => {
         console.log(err);
-        return res.status(400).json({error: err.code});
+        return status(400).json({error: err.code});
       })
   })
 
@@ -79,7 +82,7 @@ exports.createNotificationOnComment = functions.firestore.document('comments/{id
 .onCreate((snapshot) => {
   db.doc(`/favs/${snapshot.data().favId}`).get()
     .then(doc => {
-      if(doc.exists){
+      if(doc.exists){ // if same user
         return db.doc(`/notifications/${snapshot.id}`).set({
           postedOn: new Date().toISOString(),
           recipient: doc.data().username,
@@ -97,7 +100,7 @@ exports.createNotificationOnComment = functions.firestore.document('comments/{id
     })
 })
 
-// bot necessary ?
+// Not necessary
 exports.deleteNotificationOnUnLike = functions.firestore.document('likes/{id}')
 .onDelete((snapshot) => {
   db.doc(`/notifications/${snapshot.id}`)
@@ -120,6 +123,12 @@ exports.onUserImageChange = functions.firestore.document('/users/{userId}')
         data.forEach(doc => {
           const fav = db.doc(`/favs/${doc.id}`);
           batch.update(fav, {userImage: change.after.data().imageUrl});
+        })
+        return db.collection('comments').where('username', '==', change.before.data().username).get()
+      }).then(data => {
+        data.forEach(doc => {
+          const comment = db.doc(`/comments/${doc.id}`);
+          batch.update(comment, {userImage: change.after.data().imageUrl});
         })
         return batch.commit();
       })
@@ -151,3 +160,26 @@ exports.onFavDelete = functions.firestore.document('/favs/{favId}')
       })
       .catch(err => console.error(err))
   })
+
+exports.createNotificationOnMessage = functions.firestore.document('/messages/{messageId}')
+.onCreate((snapshot) => {
+  db.doc(`/messages/${snapshot.data().messageId}`).get()
+    .then(doc => {
+      if(doc.exists && doc.data().username !== snapshot.data().username){
+        return db.doc(`/notifications/${snapshot.id}`).set({
+          createdAt: new Date().toISOString(), // create ? post
+          recipient: doc.data().username,
+          sender: snapshot.data().username,
+          type: 'message',
+          read: false,
+          messageId: doc.id
+        });
+      }
+      console.log(snapshot.data());
+      return status(500).json({error: "Couldnt create notification"}); // What to return
+    })
+    .catch(err => {
+      console.log(err);
+      return status(400).json({error: err.code});
+    })
+})
