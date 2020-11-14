@@ -25,7 +25,7 @@ app.post('/fav/:favId/comment', FavAuth, commentOnFav);
 app.get('/fav/:favId/like', FavAuth, likeFav);
 app.get('/fav/:favId/unlike', FavAuth, unlikeFav);
 app.delete('/fav/:favId',FavAuth, deleteFav)
-app.get('/fav/:username', getUserFavs);
+app.get('/fav/sub/:username', getUserFavs);
 
 // User routes
 app.post('/signup', signup);
@@ -37,15 +37,15 @@ app.post('/user', FavAuth, addUserDetails);
 app.get('/user', FavAuth, getAuthenticatedUser);
 app.get('/user/:username', getUserDetails);
 app.post('/notifications', FavAuth, markNotificationsRead);
+app.get('/follow/:username', FavAuth, followUser);
+app.get('/unfollow/:username', FavAuth, unfollowUser);
+app.post('/search/user', getSimilarUsernames);
 
 //Kontrol Edilmedi
-
-app.post('/follow/:username', FavAuth, followUser);
-app.delete('/disfollow/:username', FavAuth, unfollowUser);
 app.post('/sendmessage/:username', FavAuth, sendmessage);
 app.get('/getmessage/:username', FavAuth, getmessages);
+// GEREKSIZ
 app.get('/follow', FavAuth, getFollowing);
-app.post('/search/user', getSimilarUsernames);
 
 app.use(cors({origin: true}));
 
@@ -79,7 +79,7 @@ exports.createNotificationOnComment = functions.firestore.document('comments/{id
 .onCreate((snapshot) => {
   db.doc(`/favs/${snapshot.data().favId}`).get()
     .then(doc => {
-      if(doc.exists){ // if same user
+      if(doc.exists &&  doc.data().username !== snapshot.data().username){
         return db.doc(`/notifications/${snapshot.id}`).set({
           createdAt: new Date().toISOString(),
           recipient: doc.data().username,
@@ -132,6 +132,7 @@ exports.onUserImageChange = functions.firestore.document('/users/{userId}')
     } else return null;
   })
 
+// EXTRA
 exports.onFavDelete = functions.firestore.document('/favs/{favId}')
   .onDelete((snapshot, context) => {
     const favId = context.params.favId;

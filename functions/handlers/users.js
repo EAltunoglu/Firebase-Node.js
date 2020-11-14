@@ -5,7 +5,6 @@ firebase.initializeApp(config);
 const {validateSignupData, validateLoginData, reduceUserDetails} = require('../util/validators');
 const {uuid} = require("uuidv4");
 const { get } = require('http');
-//const {getUserFavs} = require('');
 
 exports.signup =  (req, res) => {
     const newUser = {
@@ -111,7 +110,8 @@ exports.getUserDetails = (req, res) => {
         username: doc.data().username,
         userImage: doc.data().userImage,
         commentCount: doc.data().commentCount,
-        favId: doc.data().id
+        favId: doc.id,
+        likeCount: doc.data().likeCount
       })
     });
     return res.json(userData);
@@ -159,7 +159,7 @@ exports.getAuthenticatedUser = (req, res) => {
       userData.following = [];
       data.forEach(doc => {
         userData.following.push({
-          username: doc.data().reciever
+          username: doc.data().recipient
         })
       })
       return res.json(userData);
@@ -258,7 +258,7 @@ exports.markNotificationsRead = (req, res) => {
 exports.followUser = (req, res) => {
   const newFollow = {
     sender: req.user.username,
-    receiver: req.params.username,
+    recipient: req.params.username,
     followOn: new Date().toISOString(),
   };
 
@@ -276,18 +276,32 @@ exports.followUser = (req, res) => {
 }
 
 exports.unfollowUser = (req, res) => {
-  // ???
-  const document = db.collection("follows").where('sender', '==', req.user.username).where('receiver', '==', req.params.username).get();
+  let temp = {}
+  const document = db.collection("follows")
+  .where('sender', '==', req.user.username)
+  .where('recipient', '==', req.params.username)
+  .limit(1)
+  .get()
+  .then(data => {
+    temp = data.docs[0].data();
+    return db
+            .doc(`follows/${data.docs[0].id}`)
+            .delete()
+  })
+  .then(() => {
+    return res.json(temp);
+  })
+  .catch(err =>{
+    console.error(err);
+    res.status(500).json({error: err.code});
+  })
+  /*
   document.get()
     .then(doc => {
       if(!doc.exists){
         return res.status(404).json({error: 'Follow not found'});
       }
-      if(doc.data().username !== req.user.username){ // ? username
-        return res.status(403).json({error: 'Unauthorized'});
-      } else {
-        return document.delete();
-      }
+      return document.delete();
     })
     .then(() => {
       return res.json({message: 'Follow deleted successfully'});
@@ -295,14 +309,14 @@ exports.unfollowUser = (req, res) => {
     .catch(err => {
       console.error(err);
       return res.status(500).json({error: err.code});
-    })
+    })*/
 }
 
 exports.sendmessage = (req, res) => {
   const newMessage = {
     message: req.body.message,
     sender: req.user.username,
-    receiver: req.params.username,
+    recipient: req.params.username,
     status: 'notread',
     createdAt: new Date().toISOString(),
   };
@@ -324,7 +338,7 @@ exports.getmessages = (req, res) => {
   db
     .collection("messages")
     .where('sender', '==', req.user.username)
-    .where('receiver', '==', req.params.username)
+    .where('recipient', '==', req.params.username)
     .orderBy('createdAt', 'desc') // COMplex query ??
     .get()
     .then(data => {
@@ -350,7 +364,7 @@ exports.getFollowing = (req, res) => {
     let following=[];
     data.forEach(doc => {
       following.push({
-        following: doc.data().reciever
+        following: doc.data().recipient
       });
     })
     return res.json(following);
