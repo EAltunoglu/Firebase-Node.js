@@ -356,6 +356,27 @@ exports.getmessages = (req, res) => {
   
 }
 
+exports.getAllMessages = (req, res) => {
+  db
+    .collection("messages")
+    .where('sender', '==', req.user.username)
+    .orderBy('createdAt', 'desc')
+    .get()
+    .then(data => {
+      let messages = [];
+      data.forEach(doc => {
+        messages.push({
+          messageId: doc.id,
+          message: doc.data().message
+        })
+      })
+      return res.json(messages);
+    }).catch(err => {
+      return res.status(500).json({error: err.code});
+    });
+  
+}
+
 exports.getFollowing = (req, res) => {
   db.collection("follows")
   .where("sender", '==', req.user.username)

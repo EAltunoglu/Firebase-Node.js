@@ -13,7 +13,7 @@ const { signup, login, uploadImage, addUserDetails,
   getAuthenticatedUser, getUserDetails,
   markNotificationsRead, followUser, unfollowUser,
   sendmessage, getmessages, getFollowing,
-  getSimilarUsernames } = require('./handlers/users')
+  getSimilarUsernames, getAllMessages } = require('./handlers/users')
 
 app.use(cors({origin: true}));
 
@@ -44,6 +44,8 @@ app.post('/search/user', getSimilarUsernames);
 //Kontrol Edilmedi
 app.post('/sendmessage/:username', FavAuth, sendmessage);
 app.get('/getmessage/:username', FavAuth, getmessages);
+app.get('/user/messages', FavAuth, getAllMessages);
+
 // GEREKSIZ
 app.get('/follow', FavAuth, getFollowing);
 
