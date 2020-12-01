@@ -4,7 +4,7 @@ const firebase = require('firebase');
 firebase.initializeApp(config);
 const {validateSignupData, validateLoginData, reduceUserDetails} = require('../util/validators');
 const {uuid} = require("uuidv4");
-const { get } = require('http');
+//const { get } = require('http');
 
 exports.signup =  (req, res) => {
     const newUser = {
@@ -411,6 +411,22 @@ exports.getSimilarUsernames = (req, res) => {
     return res.json(users);
   }).catch(err =>{
     console.log(err);
+    return res.status(500).json({error: err.code});
+  })
+}
+
+exports.whoToFollow = (req, res) => {
+  db.collection('users').orderBy('createdAt', 'desc').limit(5).get()
+  .then(data => {
+    let users = [];
+    data.forEach(doc => {
+      users.push({
+        username: doc.data().username,
+        imageUrl: doc.data().imageUrl
+      })
+    })
+    return res.json(users);
+  }).catch(err => {
     return res.status(500).json({error: err.code});
   })
 }

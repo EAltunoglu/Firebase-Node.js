@@ -1,4 +1,4 @@
-const { db } =require('../util/admin');
+const { db } = require('../util/admin');
 
 exports.getAllFavs = (req, res) => {
   db.collection('favs')
@@ -9,12 +9,15 @@ exports.getAllFavs = (req, res) => {
     data.forEach(doc => {
       favs.push({
         favId: doc.id,
+        data: doc.data().data,
         body: doc.data().body,
+        star: doc.data().star,
         username: doc.data().username,
         createdAt: doc.data().createdAt,
         commentCount: doc.data().commentCount,
         likeCount: doc.data().likeCount,
-        userImage: doc.data().userImage
+        userImage: doc.data().userImage,
+        type: doc.data().type
       });
     });
     return res.json(favs);
@@ -33,7 +36,9 @@ exports.postOneFav = (req, res) => {
   
   const newFav = {
     body: req.body.body,
-    //favName: req.body.favName, Eklenecek fıeldlar mesela
+    data: req.body.data,
+    type: req.body.type,
+    star: req.body.star,
     username: req.user.username,
     userImage: req.user.imageUrl,
     createdAt: new Date().toISOString(),
@@ -56,18 +61,21 @@ exports.postOneFav = (req, res) => {
 
 exports.getFav = (req, res) => {
   let favData = {};
-  db.doc(`/favs/${req.params.favId}`).get()
+  db.doc(`/favs/${req.params.favId}`)
+    .get()
     .then(doc => {
       if(!doc.exists){
         return res.status(404).json({ error: 'Fav not found'})
       }
       favData = doc.data();
       favData.favId = doc.id;
-      return db.collection('comments')
+      return db
+      .collection('comments')
       .orderBy('createdAt', 'desc') // Complex query
-      .where('favId', '==', req.params.favId).get();
-      //return res.status(400).json({error: 'Get fav Error'});
-    }).then( data => {
+      .where('favId', '==', req.params.favId)
+      .get();
+    })
+    .then((data) => {
       favData.comments = [];
       data.forEach(doc => {
         favData.comments.push(doc.data())
@@ -113,7 +121,7 @@ exports.commentOnFav = (req, res) => {
     })
 }
 
-// SIKINTI
+// Nested Promises
 exports.likeFav = (req, res) => {
   const likeDocument = db
   .collection('likes')
@@ -212,6 +220,9 @@ exports.getUserFavs = (req, res) => {
       favs.push({
         favId: doc.id,
         body: doc.data().body,
+        data: doc.data().data,
+        type: doc.data().type,
+        star: doc.data().star,
         username: doc.data().username,
         createdAt: doc.data().createdAt,
         commentCount: doc.data().commentCount,
