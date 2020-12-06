@@ -39,6 +39,7 @@ exports.postOneFav = (req, res) => {
     data: req.body.data,
     type: req.body.type,
     star: req.body.star,
+    //trend: '',
     username: req.user.username,
     userImage: req.user.imageUrl,
     createdAt: new Date().toISOString(),
@@ -151,7 +152,24 @@ exports.likeFav = (req, res) => {
           })
           .then(() => {
             favData.likeCount++
-            return favDocument.update({likeCount: favData.likeCount})
+            date = new Date(favData.createdAt);
+            year = date.getFullYear();
+            month = date.getMonth()+1;
+            dt = date.getDate();
+            if (dt < 10) {
+              dt = '0' + dt;
+            }
+            if (month < 10) {
+              month = '0' + month;
+            }
+            let x = favData.likeCount;
+            let str  = x.toString()
+            while(x < 100000){
+                x *= 10;
+                str = '0' + str;
+            }
+
+            return favDocument.update({likeCount: favData.likeCount, trend: year+month+dt+str})
           })
           .then(() => {
             return res.json(favData);
@@ -258,4 +276,31 @@ exports.deleteFav = (req, res) => {
       console.error(err);
       return res.status(500).json({error: err.code});
     })
+}
+
+exports.getTrend = (req, res) => {
+  db.collection('favs')
+  .orderBy('trend', 'desc')
+  .get()
+  .limit(5)
+  .then(data => {
+    let favs = [];
+    data.forEach(doc => {
+      favs.push({
+        favId: doc.id,
+        body: doc.data().body,
+        data: doc.data().data,
+        type: doc.data().type,
+        username: doc.data().username,
+        createdAt: doc.data().createdAt,
+        commentCount: doc.data().commentCount,
+        likeCount: doc.data().likeCount,
+        userImage: doc.data().userImage
+      });
+    });
+    return res.json(favs);
+  })
+  .catch(err => {
+    return res.status(500).json({error: err.code});
+  })
 }
