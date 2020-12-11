@@ -105,13 +105,16 @@ exports.getUserDetails = (req, res) => {
     userData.favs = [];
     data.forEach((doc) => {
       userData.favs.push({
-        body: doc.data().body,
-        createdAt: doc.data().createdAt,
-        username: doc.data().username,
-        userImage: doc.data().userImage,
-        commentCount: doc.data().commentCount,
         favId: doc.id,
-        likeCount: doc.data().likeCount
+        body: doc.data().body,
+        data: doc.data().data,
+        type: doc.data().type,
+        star: doc.data().star,
+        username: doc.data().username,
+        createdAt: doc.data().createdAt,
+        commentCount: doc.data().commentCount,
+        likeCount: doc.data().likeCount,
+        userImage: doc.data().userImage
       })
     });
     return res.json(userData);
@@ -198,13 +201,9 @@ exports.uploadImage = (req, res) => {
 
   busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
     console.log(fieldname, file, filename, encoding, mimetype);
-    //check again
-      if(mimetype !== 'image/jpeg' && mimetype !== 'image/png'){
-          return res.status(400).json({error: 'Wrong file type submitted'});
-      }
-    //console.log(fieldname);
-    //console.log(filename);
-    //console.log(mimetype);
+    if(mimetype !== 'image/jpeg' && mimetype !== 'image/png'){
+        return res.status(400).json({error: 'Wrong file type submitted'});
+    }
     const imageExtension = filename.split('.')[filename.split('.').length - 1];
     imageFileName = `${Math.round(
       Math.random() * 1000000000000

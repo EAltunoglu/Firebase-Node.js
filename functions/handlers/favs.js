@@ -169,7 +169,7 @@ exports.likeFav = (req, res) => {
                 str = '0' + str;
             }
 
-            return favDocument.update({likeCount: favData.likeCount, trend: year+month+dt+str})
+            return favDocument.update({likeCount: favData.likeCount, trend: year.toString()+month.toString()+dt.toString()+str})
           })
           .then(() => {
             return res.json(favData);
@@ -228,7 +228,8 @@ exports.unlikeFav = (req, res) => {
 }
 
 exports.getUserFavs = (req, res) => {
-  db.collection('favs')
+  db
+  .collection('favs')
   .where('username', '==', req.params.username)
   .orderBy('createdAt', 'desc')
   .get()
@@ -279,10 +280,11 @@ exports.deleteFav = (req, res) => {
 }
 
 exports.getTrend = (req, res) => {
-  db.collection('favs')
+  db
+  .collection('favs')
   .orderBy('trend', 'desc')
-  .get()
   .limit(5)
+  .get()
   .then(data => {
     let favs = [];
     data.forEach(doc => {

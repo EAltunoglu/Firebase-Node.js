@@ -16,6 +16,7 @@ const {
   unlikeFav,
   deleteFav,
   getUserFavs,
+  getTrend,
 } = require("./handlers/favs");
 const {
   signup,
@@ -51,6 +52,7 @@ app.get("/fav/:favId/like", FavAuth, likeFav);
 app.get("/fav/:favId/unlike", FavAuth, unlikeFav);
 app.delete("/fav/:favId", FavAuth, deleteFav);
 app.get("/fav/sub/:username", getUserFavs);
+app.get("/trends", getTrend);
 
 // List routes
 app.get("/lists/:username", getUserLists);
